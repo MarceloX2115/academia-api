@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Academia — Painel</title>
+<style>
+  :root { --bg:#0f172a; --card:#1e293b; --line:#334155; --txt:#e2e8f0; --mut:#94a3b8; --pri:#22c55e; --err:#ef4444; --warn:#f59e0b; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { padding:16px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  header h1 { margin:0; font-size:20px; }
+  header a { color:var(--pri); text-decoration:none; font-size:14px; }
+  nav { display:flex; gap:8px; padding:12px 24px; }
+  nav button { background:var(--card); color:var(--txt); border:1px solid var(--line); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px; }
+  nav button.active { background:var(--pri); color:#052e16; border-color:var(--pri); font-weight:600; }
+  main { padding:0 24px 40px; max-width:1100px; margin:0 auto; }
+  section { display:none; }
+  section.active { display:block; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  h2 { font-size:16px; margin:0 0 12px; }
+  form, .filters { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
+  label { display:flex; flex-direction:column; font-size:12px; color:var(--mut); gap:4px; }
+  input, select { background:var(--bg); color:var(--txt); border:1px solid var(--line); border-radius:6px; padding:8px; font-size:14px; min-width:150px; }
+  button.act { background:var(--pri); color:#052e16; border:0; border-radius:6px; padding:9px 14px; font-weight:600; cursor:pointer; }
+  button.sec { background:transparent; color:var(--txt); border:1px solid var(--line); border-radius:6px; padding:6px 10px; cursor:pointer; font-size:12px; }
+  button.del { color:var(--err); border-color:var(--err); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th { color:var(--mut); font-weight:500; font-size:12px; text-transform:uppercase; }
+  .tag { padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+  .ATIVA, .true { background:#14532d; color:#86efac; }
+  .VENCIDA { background:#78350f; color:#fcd34d; }
+  .CANCELADA, .false { background:#7f1d1d; color:#fca5a5; }
+  #msg { position:fixed; right:16px; bottom:16px; max-width:380px; padding:12px 16px; border-radius:10px; display:none; font-size:14px; white-space:pre-line; z-index:10; }
+  #msg.ok { background:#14532d; border:1px solid var(--pri); display:block; }
+  #msg.error { background:#7f1d1d; border:1px solid var(--err); display:block; }
+  .empty { color:var(--mut); padding:12px 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏋️ Academia — Painel de Gestão</h1>
+  <span><a href="/swagger-ui.html" target="_blank">Swagger</a> · <a href="/h2-console" target="_blank">H2 Console</a></span>
+</header>
+<nav>
+  <button data-tab="alunos" class="active">Alunos</button>
+  <button data-tab="planos">Planos</button>
+  <button data-tab="matriculas">Matrículas</button>
+</nav>
+<main>
+
+  <!-- ALUNOS -->
+  <section id="alunos" class="active">
+    <div class="card">
+      <h2 id="alunoTitulo">Novo aluno</h2>
+      <form id="alunoForm">
+        <input type="hidden" id="alunoId">
+        <label>Nome<input id="alunoNome" required></label>
+        <label>E-mail<input id="alunoEmail" type="email" required></label>
+        <label>CPF (11 dígitos)<input id="alunoCpf" required maxlength="11"></label>
+        <label>Telefone<input id="alunoTel"></label>
+        <label>Nascimento<input id="alunoNasc" type="date"></label>
+        <button class="act" type="submit">Salvar</button>
+        <button class="sec" type="button" id="alunoCancelar">Limpar</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Alunos</h2>
+      <div class="filters" style="margin-bottom:12px">
+        <label>Filtrar por nome<input id="alunoFiltro" placeholder="ex.: ana"></label>
+        <button class="act" id="alunoBuscar">Buscar</button>
+      </div>
+      <div id="alunoLista"></div>
+    </div>
+  </section>
+
+  <!-- PLANOS -->
+  <section id="planos">
+    <div class="card">
+      <h2 id="planoTitulo">Novo plano</h2>
+      <form id="planoForm">
+        <input type="hidden" id="planoId">
+        <label>Nome<input id="planoNome" required></label>
+        <label>Descrição<input id="planoDesc"></label>
+        <label>Valor mensal (R$)<input id="planoValor" type="number" step="0.01" min="0.01" required></label>
+        <label>Duração (meses)<input id="planoDuracao" type="number" min="1" max="36" required></label>
+        <label>Situação
+          <select id="planoAtivo"><option value="true">Ativo</option><option value="false">Inativo</option></select>
+        </label>
+        <button class="act" type="submit">Salvar</button>
+        <button class="sec" type="button" id="planoCancelar">Limpar</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Planos</h2>
+      <div class="filters" style="margin-bottom:12px">
+        <label>Situação
+          <select id="planoFiltro"><option value="">Todos</option><option value="true">Ativos</option><option value="false">Inativos</option></select>
+        </label>
+        <button class="act" id="planoBuscar">Buscar</button>
+      </div>
+      <div id="planoLista"></div>
+    </div>
+  </section>
+
+  <!-- MATRÍCULAS -->
+  <section id="matriculas">
+    <div class="card">
+      <h2>Nova matrícula</h2>
+      <form id="matriculaForm">
+        <label>Aluno<select id="matAluno" required></select></label>
+        <label>Plano<select id="matPlano" required></select></label>
+        <label>Início (opcional)<input id="matInicio" type="date"></label>
+        <button class="act" type="submit">Matricular</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Matrículas</h2>
+      <div class="filters" style="margin-bottom:12px">
+        <label>Nome do aluno<input id="matFiltroNome" placeholder="ex.: ana"></label>
+        <label>Status
+          <select id="matFiltroStatus">
+            <option value="">Todos</option><option>ATIVA</option><option>VENCIDA</option><option>CANCELADA</option>
+          </select>
+        </label>
+        <button class="act" id="matBuscar">Buscar</button>
+        <button class="sec" id="matVencendo">Vencendo em 7 dias</button>
+      </div>
+      <div id="matriculaLista"></div>
+    </div>
+  </section>
+
+</main>
+<div id="msg"></div>
+
+<script>
+const API = '/api';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const dt = (s) => s ? s.split('-').reverse().join('/') : '';
+
+let msgTimer;
+function toast(texto, tipo = 'ok') {
+  const el = $('msg');
+  el.textContent = texto;
+  el.className = tipo;
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { el.className = ''; }, 5000);
+}
+
+// Chamada genérica à API: mostra a mensagem de erro retornada pelo backend (400/404/409...).
+async function api(metodo, caminho, corpo) {
+  const resp = await fetch(API + caminho, {
+    method: metodo,
+    headers: corpo ? { 'Content-Type': 'application/json' } : undefined,
+    body: corpo ? JSON.stringify(corpo) : undefined
+  });
+  if (resp.status === 204) return null;
+  const dados = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    let t = `${resp.status} — ${dados?.message ?? 'Erro na requisição'}`;
+    if (dados?.details?.length) t += '\n• ' + dados.details.join('\n• ');
+    throw new Error(t);
+  }
+  return dados;
+}
+const seguro = (fn) => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, 'error'); } };
+
+// ---------- Abas ----------
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('nav button, section').forEach(e => e.classList.remove('active'));
+  b.classList.add('active');
+  $(b.dataset.tab).classList.add('active');
+  if (b.dataset.tab === 'matriculas') carregarSelects().then(listarMatriculas).catch(e => toast(e.message, 'error'));
+  if (b.dataset.tab === 'planos') listarPlanos().catch(e => toast(e.message, 'error'));
+  if (b.dataset.tab === 'alunos') listarAlunos().catch(e => toast(e.message, 'error'));
+}));
+
+function tabela(colunas, linhas, vazio) {
+  if (!linhas.length) return `<div class="empty">${vazio}</div>`;
+  return `<table><thead><tr>${colunas.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>${linhas.join('')}</tbody></table>`;
+}
+
+// ---------- ALUNOS ----------
+async function listarAlunos() {
+  const nome = $('alunoFiltro').value.trim();
+  const pagina = await api('GET', `/alunos?size=100${nome ? '&nome=' + encodeURIComponent(nome) : ''}`);
+  window._alunos = pagina.content;
+  $('alunoLista').innerHTML = tabela(
+    ['ID', 'Nome', 'E-mail', 'CPF', 'Telefone', ''],
+    pagina.content.map(a => `<tr><td>${a.id}</td><td>${esc(a.nome)}</td><td>${esc(a.email)}</td><td>${esc(a.cpf)}</td><td>${esc(a.telefone)}</td>
+      <td><button class="sec" onclick="editarAluno(${a.id})">Editar</button>
+          <button class="sec del" onclick="excluirAluno(${a.id})">Excluir</button></td></tr>`),
+    'Nenhum aluno encontrado.');
+}
+function limparAluno() {
+  $('alunoForm').reset(); $('alunoId').value = ''; $('alunoTitulo').textContent = 'Novo aluno';
+}
+window.editarAluno = (id) => {
+  const a = window._alunos.find(x => x.id === id);
+  $('alunoId').value = a.id; $('alunoNome').value = a.nome; $('alunoEmail').value = a.email;
+  $('alunoCpf').value = a.cpf; $('alunoTel').value = a.telefone ?? ''; $('alunoNasc').value = a.dataNascimento ?? '';
+  $('alunoTitulo').textContent = `Editando aluno #${a.id}`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+window.excluirAluno = seguro(async (id) => {
+  if (!confirm('Excluir este aluno?')) return;
+  await api('DELETE', `/alunos/${id}`);
+  toast('Aluno excluído.'); await listarAlunos();
+});
+$('alunoForm').addEventListener('submit', seguro(async (e) => {
+  e.preventDefault();
+  const corpo = {
+    nome: $('alunoNome').value, email: $('alunoEmail').value, cpf: $('alunoCpf').value,
+    telefone: $('alunoTel').value || null, dataNascimento: $('alunoNasc').value || null
+  };
+  const id = $('alunoId').value;
+  await api(id ? 'PUT' : 'POST', id ? `/alunos/${id}` : '/alunos', corpo);
+  toast(id ? 'Aluno atualizado.' : 'Aluno cadastrado.');
+  limparAluno(); await listarAlunos();
+}));
+$('alunoCancelar').addEventListener('click', limparAluno);
+$('alunoBuscar').addEventListener('click', seguro(listarAlunos));
+
+// ---------- PLANOS ----------
+async function listarPlanos() {
+  const ativo = $('planoFiltro').value;
+  const pagina = await api('GET', `/planos?size=100${ativo ? '&ativo=' + ativo : ''}`);
+  window._planos = pagina.content;
+  $('planoLista').innerHTML = tabela(
+    ['ID', 'Nome', 'Valor mensal', 'Duração', 'Situação', ''],
+    pagina.content.map(p => `<tr><td>${p.id}</td><td>${esc(p.nome)}<br><small style="color:var(--mut)">${esc(p.descricao)}</small></td>
+      <td>${brl(p.valorMensal)}</td><td>${p.duracaoMeses} mês(es)</td>
+      <td><span class="tag ${p.ativo}">${p.ativo ? 'ATIVO' : 'INATIVO'}</span></td>
+      <td><button class="sec" onclick="editarPlano(${p.id})">Editar</button>
+          <button class="sec del" onclick="excluirPlano(${p.id})">Excluir</button></td></tr>`),
+    'Nenhum plano encontrado.');
+}
+function limparPlano() {
+  $('planoForm').reset(); $('planoId').value = ''; $('planoTitulo').textContent = 'Novo plano';
+}
+window.editarPlano = (id) => {
+  const p = window._planos.find(x => x.id === id);
+  $('planoId').value = p.id; $('planoNome').value = p.nome; $('planoDesc').value = p.descricao ?? '';
+  $('planoValor').value = p.valorMensal; $('planoDuracao').value = p.duracaoMeses; $('planoAtivo').value = String(p.ativo);
+  $('planoTitulo').textContent = `Editando plano #${p.id}`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+window.excluirPlano = seguro(async (id) => {
+  if (!confirm('Excluir este plano?')) return;
+  await api('DELETE', `/planos/${id}`);
+  toast('Plano excluído.'); await listarPlanos();
+});
+$('planoForm').addEventListener('submit', seguro(async (e) => {
+  e.preventDefault();
+  const corpo = {
+    nome: $('planoNome').value, descricao: $('planoDesc').value || null,
+    valorMensal: Number($('planoValor').value), duracaoMeses: Number($('planoDuracao').value),
+    ativo: $('planoAtivo').value === 'true'
+  };
+  const id = $('planoId').value;
+  await api(id ? 'PUT' : 'POST', id ? `/planos/${id}` : '/planos', corpo);
+  toast(id ? 'Plano atualizado.' : 'Plano cadastrado.');
+  limparPlano(); await listarPlanos();
+}));
+$('planoCancelar').addEventListener('click', limparPlano);
+$('planoBuscar').addEventListener('click', seguro(listarPlanos));
+
+// ---------- MATRÍCULAS ----------
+async function carregarSelects() {
+  const [alunos, planos] = await Promise.all([api('GET', '/alunos?size=200'), api('GET', '/planos?size=200')]);
+  $('matAluno').innerHTML = alunos.content.map(a => `<option value="${a.id}">${esc(a.nome)}</option>`).join('');
+  $('matPlano').innerHTML = planos.content.map(p =>
+    `<option value="${p.id}">${esc(p.nome)} — ${brl(p.valorMensal)}/mês${p.ativo ? '' : ' (inativo)'}</option>`).join('');
+}
+function renderMatriculas(lista) {
+  $('matriculaLista').innerHTML = tabela(
+    ['ID', 'Aluno', 'Plano', 'Início', 'Vencimento', 'Dias', 'Total', 'Status', ''],
+    lista.map(m => `<tr><td>${m.id}</td><td>${esc(m.alunoNome)}</td><td>${esc(m.planoNome)}</td>
+      <td>${dt(m.dataInicio)}</td><td>${dt(m.dataVencimento)}</td><td>${m.diasParaVencimento}</td>
+      <td>${brl(m.valorTotal)}</td><td><span class="tag ${m.status}">${m.status}</span></td>
+      <td>${m.status !== 'CANCELADA' ? `<button class="sec" onclick="renovar(${m.id})">Renovar</button>` : ''}
+          ${m.status === 'ATIVA' ? `<button class="sec" onclick="cancelar(${m.id})">Cancelar</button>` : ''}
+          <button class="sec del" onclick="excluirMatricula(${m.id})">Excluir</button></td></tr>`),
+    'Nenhuma matrícula encontrada.');
+}
+async function listarMatriculas() {
+  const nome = $('matFiltroNome').value.trim(), status = $('matFiltroStatus').value;
+  const q = new URLSearchParams({ size: '100' });
+  if (nome) q.set('nomeAluno', nome);
+  if (status) q.set('status', status);
+  renderMatriculas((await api('GET', `/matriculas?${q}`)).content);
+}
+window.renovar = seguro(async (id) => { await api('PATCH', `/matriculas/${id}/renovar`); toast('Matrícula renovada.'); await listarMatriculas(); });
+window.cancelar = seguro(async (id) => { await api('PATCH', `/matriculas/${id}/cancelar`); toast('Matrícula cancelada.'); await listarMatriculas(); });
+window.excluirMatricula = seguro(async (id) => {
+  if (!confirm('Excluir esta matrícula?')) return;
+  await api('DELETE', `/matriculas/${id}`); toast('Matrícula excluída.'); await listarMatriculas();
+});
+$('matriculaForm').addEventListener('submit', seguro(async (e) => {
+  e.preventDefault();
+  await api('POST', '/matriculas', {
+    alunoId: Number($('matAluno').value), planoId: Number($('matPlano').value),
+    dataInicio: $('matInicio').value || null
+  });
+  toast('Matrícula realizada com sucesso.');
+  await listarMatriculas();
+}));
+$('matBuscar').addEventListener('click', seguro(listarMatriculas));
+$('matVencendo').addEventListener('click', seguro(async () => renderMatriculas(await api('GET', '/matriculas/vencendo?dias=7'))));
+
+listarAlunos().catch(e => toast(e.message, 'error'));
+</script>
+</body>
+</html>

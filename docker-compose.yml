@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: academia
+      POSTGRES_USER: academia
+      POSTGRES_PASSWORD: academia
+    ports:
+      - "5432:5432"
+    volumes:
+      - academia-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academia -d academia"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      DB_HOST: db
+      DB_NAME: academia
+      DB_USER: academia
+      DB_PASSWORD: academia
+    ports:
+      - "8080:8080"
+
+volumes:
+  academia-data:
